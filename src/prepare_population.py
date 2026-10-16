@@ -44,13 +44,27 @@ df["geography_name"] = df["geography_name_raw"].str.replace(
 ).str.strip()
 
 # Assign levels using the hierarchy confirmed from the worksheet.
+
 level_map = {
     2: "Region",
     4: "Province",
     6: "City/Municipality",
     8: "Barangay",
 }
+
 df["geography_level"] = df["dot_count"].map(level_map)
+
+# Some highly urbanized cities appear at the province-level
+# indentation in this regional source table.
+independent_cities = {
+    "City of Zamboanga",
+    "City of Isabela",
+}
+
+is_independent_city = df["geography_name"].isin(independent_cities)
+
+df.loc[is_independent_city, "geography_level"] = "City/Municipality"
+
 
 # Preserve unknown levels for review rather than discarding them.
 df["geography_level"] = df["geography_level"].fillna("Review")
